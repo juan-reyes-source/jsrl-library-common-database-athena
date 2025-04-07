@@ -1,15 +1,18 @@
-from setuptools import setup
-
 LIBRARY_VERSION = "0.0.1"
 INTERNAL_VERSION = "0"
+LIBRARY_NAME = "jsrl-library-common-athena-database"
 
-long_description=(
-    open("README.md").read()
-)
+with open("README.md") as file:
+    long_description = file.read()
+
+with open("LICENSE.txt") as file:
+    license = file.read()
 
 if __name__ == "__main__":
+    from setuptools import setup
+    
     setup(
-        name="jsrl_library_common_athena_database",
+        name=LIBRARY_NAME,
         version=LIBRARY_VERSION,
         description="library with resuable components/functions by any backend project",
         long_description=long_description,
@@ -29,7 +32,7 @@ if __name__ == "__main__":
         author_email="sebas.reyes2002@hotmail.com",
         url="",
         download_url="",
-        license="Copyright",
+        license=license,
         platforms="Unix",
         packages=["jsrl_library_common",
                   "jsrl_library_common/",
