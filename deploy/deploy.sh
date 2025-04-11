@@ -30,10 +30,11 @@ generate_package_files () {
 
 
 add_build_number () {
+    local library_file_name=$(echo $LIBRARY_NAME | sed 's/-/_/g')
     echo -e "\033[38;5;82;1m ***** Building for $LIBRARY_NAME v$LIBRARY_VERSION Build number: $LIBRARY_BUILD_NAME_TAG - Build number packages ***** \033[0;m \n"
     cd dist
     ls . | { while read file; do 
-                mv $file $(echo $file | sed 's/\(jsrl_library_common-0.0.1\)\(.*\)/\1'"-$LIBRARY_BUILD_NAME_TAG"'\2/g'); 
+                mv $file $(echo $file | sed 's/\('"$library_file_name"'-0.0.1\)\(.*\)/\1'"-$LIBRARY_BUILD_NAME_TAG"'\2/g'); 
             done }
     cd ..
 }
@@ -49,11 +50,11 @@ update_to_pypi () {
 
 update_tag_info () {
     echo -e "\033[38;5;82;1m ***** Updating the $LIBRARY_NAME v$LIBRARY_VERSION Build number: $LIBRARY_BUILD_NAME_TAG - Git repository tag ***** \033[0;m \n"
-    git tag -d $LIBRARY_VERSION
-    git tag $LIBRARY_VERSION
+    git tag -d $LIBRARY_VERSION-$LIBRARY_BUILD_NAME_TAG
+    git tag $LIBRARY_VERSION-$LIBRARY_BUILD_NAME_TAG
 
-    git push origin :$LIBRARY_VERSION
-    git push origin $LIBRARY_VERSION
+    git push origin :$LIBRARY_VERSION-$LIBRARY_BUILD_NAME_TAG
+    git push origin $LIBRARY_VERSION-$LIBRARY_BUILD_NAME_TAG
 
     git fetch --tags
 }

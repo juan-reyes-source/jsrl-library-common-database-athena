@@ -83,7 +83,7 @@ def get_db_params(database='', params_connection: dict = {}):
         if type(params_connection["is_async"]) is str:
             params_connection["is_async"] = async_func(params_connection["is_async"])
         
-        if type(params_connection["options"]) is str:
+        if not params_connection["is_async"] and type(params_connection["options"]) is str:
             options = params_connection["options"]
             params_connection["options"] = dict(attr.strip().split("=") for attr in options.split("-c"))
         return params_connection
