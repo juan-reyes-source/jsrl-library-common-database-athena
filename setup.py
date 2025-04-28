@@ -1,5 +1,5 @@
 LIBRARY_VERSION = "0.0.1"
-INTERNAL_VERSION = "0"
+INTERNAL_VERSION = "1"
 LIBRARY_NAME = "jsrl-library-common-athena-database"
 
 with open("README.md") as file:

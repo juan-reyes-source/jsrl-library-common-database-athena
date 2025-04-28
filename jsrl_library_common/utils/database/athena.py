@@ -131,6 +131,48 @@ def execute_query(query,
         - generator: the query response objects
         - str: the query id
     """
+    return _execute_statement(query,
+                              params,
+                              connection,
+                              True)
+
+
+def execute_command(query,
+                    params,
+                    connection):
+    """Execute database command.
+    
+    Args:
+        - query (string): query to execute.
+        - params (tuple): query parameters.
+        - connection (psycopg2.extensions.connection): database connection.
+        
+    Returns:
+        - generator: the query response objects
+        - str: the query id
+    """
+    return _execute_statement(query,
+                              params,
+                              connection,
+                              False)
+
+    
+def _execute_statement(query,
+                       params,
+                       connection,
+                       header):
+    """Execute any Athena SQL statement
+
+    Args:
+        - query (str): the query to execute
+        - params (list): the parameters of the query
+        - connection (AthenaConnection): the AthenaConnection object
+        - header (bool): does the athena response have header?
+
+    Returns:
+        - generator: the query response objects
+        - str: the query id
+    """
     query_id, _ = athena.execute_async_query(query,
                                              connection.connection_params["database"],
                                              params,
@@ -142,17 +184,21 @@ def execute_query(query,
     if connection.connection_params["is_async"]:
         return query_id
     
-    results = _get_query_results(query_id, connection)
-    
+    results = _get_query_results(query_id,
+                                 connection,
+                                 header)
     return results, query_id
-
     
-def _get_query_results(query_id, connection):
+    
+def _get_query_results(query_id, 
+                       connection,
+                       header):
     """Get the query results
 
     Args:
         - query_id (str): the athena query execution id
         - connection (AthenaConnection): the athena connection object
+        - header (bool): does the athena response have header?
 
     Raises:
         - Exception: the query failed
@@ -172,7 +218,10 @@ def _get_query_results(query_id, connection):
         result, _ = athena.get_query_information_status(query_id, connection.conn)
         if result["QueryExecution"]["Status"]["State"] == AthenaQueryStatus.SUCCEEDED.value:
             result, _ = athena.get_query_results(query_id, connection.conn)
-            response = _generate_response_obj(result["values"], result["cols"])
+            print(result)
+            response = _generate_response_obj(result["values"],
+                                              result["cols"],
+                                              header)
             flag = False
         elif result["QueryExecution"]["Status"]["State"] in (AthenaQueryStatus.FAILED.value, AthenaQueryStatus.CANCELLED.value):
             raise Exception(result["QueryExecution"]["Status"]["AthenaError"]["ErrorMessage"])
@@ -191,7 +240,9 @@ def _get_query_results(query_id, connection):
     return response
     
     
-def _generate_response_obj(data, data_type):
+def _generate_response_obj(data,
+                           data_type,
+                           header=True):
     """Generate the response object
 
     Args:
@@ -200,8 +251,10 @@ def _generate_response_obj(data, data_type):
     Returns:
         - generator: the response objects
     """
-    headers = data[0]
-    for row in data[1:]:
+    headers = data[0] if header else list(data_type)
+    if header:
+        data = data[1:]
+    for row in data:
         yield dict((col, _map_column_type(value, data_type[col]))
                    for (col, value) in zip(headers, row))
     
@@ -269,4 +322,3 @@ def _get_retry_connection(database='',
                               params_connection)
     finally:
         return conn
-        
